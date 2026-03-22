@@ -27,14 +27,14 @@ dependencies {
 
 ## 🚀 Usage
 
-Simply create a class that implements the corresponding service interface and annotate it with `@AutoRegister`. The library will automatically call the `setup` function without requiring any additional declarations in `onCreate`.
+Simply create a class that implements the corresponding service interface and annotate it with `@AutoRegister(apis = [YourService::class])`. The library will automatically call the `setup` function without requiring any additional declarations in `onCreate`.
 
 ### 1. Application Service Example
 ```kotlin
 import com.simple.auto.register.AutoRegister
 import com.simple.component.service.ApplicationService
 
-@AutoRegister
+@AutoRegister(apis = [ApplicationService::class])
 class MyTimberService : ApplicationService {
     override fun priority(): Int = 1
     override fun setup(application: Application) {
@@ -45,7 +45,10 @@ class MyTimberService : ApplicationService {
 
 ### 2. Activity Service Example
 ```kotlin
-@AutoRegister
+import com.simple.auto.register.AutoRegister
+import com.simple.component.service.ActivityResumedService
+
+@AutoRegister(apis = [ActivityResumedService::class])
 class MyActivityLogger : ActivityResumedService {
     override fun setup(fragmentActivity: FragmentActivity) {
         // Automatically hooks into onResume of every Activity
@@ -56,7 +59,10 @@ class MyActivityLogger : ActivityResumedService {
 
 ### 3. Fragment Service Example
 ```kotlin
-@AutoRegister
+import com.simple.auto.register.AutoRegister
+import com.simple.component.service.FragmentViewCreatedService
+
+@AutoRegister(apis = [FragmentViewCreatedService::class])
 class MyFragmentTracker : FragmentViewCreatedService {
     override fun setup(fragment: Fragment) {
         // Automatically hooks into onViewCreated of every Fragment
