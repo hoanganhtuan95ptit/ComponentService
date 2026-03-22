@@ -1,6 +1,15 @@
 # ComponentService
 
-**ComponentService** is a library that helps decouple the initialization logic of components in Android applications (Application, Activity, Fragment) based on the **AutoRegister** library.
+**ComponentService** is a powerful lifecycle injection library for Android. It allows developers to "inject" any piece of code into the lifecycle of Components (Application, Activity, Fragment) while remaining **completely independent** from the main codebase.
+
+## 🌟 Why ComponentService?
+
+Traditional lifecycle management often leads to bloated `BaseActivity` or `BaseFragment` classes and tightly coupled logic in `onCreate`, `onResume`, etc. 
+
+**ComponentService** solves this by:
+- **Zero-code changes**: Inject logic into components without touching their source code.
+- **Independence**: Keep feature-specific logic (Analytics, Logging, Theme management) in its own module/file, away from the main branch.
+- **Decoupling**: Modules can hook into the lifecycle of an Activity or Fragment they don't even "know" about.
 
 ## 📦 Installation
 
@@ -27,15 +36,16 @@ dependencies {
 
 ## 🚀 Usage
 
-Simply create a class that implements the corresponding service interface and annotate it with `@AutoRegister(apis = [YourService::class])`. The library will automatically call the `setup` function without requiring any additional declarations in `onCreate`.
+Simply create a class that implements a service interface and annotate it with `@AutoRegister(apis = [YourService::class])`. The library handles the rest.
 
-### 1. Application Service Example
+### 1. Independent Application Initialization
+Inject global SDK initialization without cluttering your `Application` class.
 ```kotlin
 import com.simple.auto.register.AutoRegister
 import com.simple.component.service.ApplicationService
 
 @AutoRegister(apis = [ApplicationService::class])
-class MyTimberService : ApplicationService {
+class TimberInitializer : ApplicationService {
     override fun priority(): Int = 1
     override fun setup(application: Application) {
         Timber.plant(Timber.DebugTree())
@@ -43,114 +53,56 @@ class MyTimberService : ApplicationService {
 }
 ```
 
-### 2. Activity Service Example
+### 2. Decoupled Activity Hooking
+Inject logging or monitoring into every Activity without a `BaseActivity`.
 ```kotlin
-import com.simple.auto.register.AutoRegister
-import com.simple.component.service.ActivityResumedService
-
 @AutoRegister(apis = [ActivityResumedService::class])
-class MyActivityLogger : ActivityResumedService {
+class ActivityTracker : ActivityResumedService {
     override fun setup(fragmentActivity: FragmentActivity) {
-        // Automatically hooks into onResume of every Activity
-        Log.d("ActivityLifecycle", "${fragmentActivity.javaClass.simpleName} Resumed")
+        // Automatically hooks into onResume of every Activity independently
+        Log.d("Tracker", "${fragmentActivity.javaClass.simpleName} is now active")
     }
 }
 ```
 
-### 3. Fragment Service Example
+### 3. Feature-Specific Fragment Injection
+Inject analytics into a specific screen without modifying the Fragment file.
 ```kotlin
-import com.simple.auto.register.AutoRegister
-import com.simple.component.service.FragmentViewCreatedService
-
-@AutoRegister(apis = [FragmentViewCreatedService::class])
-class MyFragmentTracker : FragmentViewCreatedService {
+@AutoRegister(apis = [FragmentViewCreatedService::class], className = "com.myapp.home.HomeFragment")
+class HomeAnalyticsInjection : FragmentViewCreatedService {
     override fun setup(fragment: Fragment) {
-        // Automatically hooks into onViewCreated of every Fragment
-        Analytics.trackScreen(fragment.javaClass.simpleName)
+        // This code is injected into HomeFragment's onViewCreated automatically
+        Analytics.trackScreen("HomeView")
     }
 }
 ```
 
-## ⚙️ List of Services (Hook points)
+## ⚙️ Supported Lifecycle Hooks
 
-Users can implement the following interfaces based on their needs:
+You can implement the following interfaces to inject code at specific moments:
 
-### Application Service
-```kotlin
-interface ApplicationService : ComponentService<Application> {
-    override fun setup(application: Application)
-}
-```
+### Application
+- `ApplicationService`: Injected during Application creation.
 
-### Activity Services
-```kotlin
-interface ActivityService : ComponentService<FragmentActivity> {
-    override fun setup(fragmentActivity: FragmentActivity)
-}
+### Activity Lifecycle Hooks
+- `ActivityService`: Injected into `onCreate`.
+- `ActivityStartedService`: Injected into `onStart`.
+- `ActivityResumedService`: Injected into `onResume`.
+- `ActivityPausedService`: Injected into `onPause`.
+- `ActivityStoppedService`: Injected into `onStop`.
+- `ActivityDestroyedService`: Injected into `onDestroy`.
 
-interface ActivityStartedService : ComponentService<FragmentActivity> {
-    override fun setup(fragmentActivity: FragmentActivity)
-}
-
-interface ActivityResumedService : ComponentService<FragmentActivity> {
-    override fun setup(fragmentActivity: FragmentActivity)
-}
-
-interface ActivityPausedService : ComponentService<FragmentActivity> {
-    override fun setup(fragmentActivity: FragmentActivity)
-}
-
-interface ActivityStoppedService : ComponentService<FragmentActivity> {
-    override fun setup(fragmentActivity: FragmentActivity)
-}
-
-interface ActivityDestroyedService : ComponentService<FragmentActivity> {
-    override fun setup(fragmentActivity: FragmentActivity)
-}
-```
-
-### Fragment Services
-```kotlin
-interface FragmentAttachedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentCreatedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentViewCreatedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentStartedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentResumedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentPausedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentStoppedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentViewDestroyedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentDestroyedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentDetachedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-```
+### Fragment Lifecycle Hooks
+- `FragmentAttachedService`: Injected into `onAttach`.
+- `FragmentCreatedService`: Injected into `onCreate`.
+- `FragmentViewCreatedService`: Injected into `onViewCreated`.
+- `FragmentStartedService`: Injected into `onStart`.
+- `FragmentResumedService`: Injected into `onResume`.
+- `FragmentPausedService`: Injected into `onPause`.
+- `FragmentStoppedService`: Injected into `onStop`.
+- `FragmentViewDestroyedService`: Injected into `onDestroyView`.
+- `FragmentDestroyedService`: Injected into `onDestroy`.
+- `FragmentDetachedService`: Injected into `onDetach`.
 
 ---
 Developed by [Hoàng Anh Tuấn](https://github.com/hoanganhtuan95ptit).
