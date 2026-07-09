@@ -6,8 +6,9 @@ import android.app.Application
 import android.content.ComponentCallbacks
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.simple.auto.register.AutoKeep
 
-interface ComponentService<T : ComponentCallbacks> {
+interface ComponentService<T : ComponentCallbacks>: AutoKeep {
 
     fun priority(): Int = 0
 
