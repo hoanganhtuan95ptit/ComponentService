@@ -88,9 +88,6 @@ You can implement the following interfaces to inject code at specific moments:
 - `ActivityService`: Injected into `onCreate`.
 - `ActivityStartedService`: Injected into `onStart`.
 - `ActivityResumedService`: Injected into `onResume`.
-- `ActivityPausedService`: Injected into `onPause`.
-- `ActivityStoppedService`: Injected into `onStop`.
-- `ActivityDestroyedService`: Injected into `onDestroy`.
 
 ### Fragment Lifecycle Hooks
 - `FragmentAttachedService`: Injected into `onAttach`.
@@ -98,11 +95,6 @@ You can implement the following interfaces to inject code at specific moments:
 - `FragmentViewCreatedService`: Injected into `onViewCreated`.
 - `FragmentStartedService`: Injected into `onStart`.
 - `FragmentResumedService`: Injected into `onResume`.
-- `FragmentPausedService`: Injected into `onPause`.
-- `FragmentStoppedService`: Injected into `onStop`.
-- `FragmentViewDestroyedService`: Injected into `onDestroyView`.
-- `FragmentDestroyedService`: Injected into `onDestroy`.
-- `FragmentDetachedService`: Injected into `onDetach`.
 
 ---
 Developed by [Hoàng Anh Tuấn](https://github.com/hoanganhtuan95ptit).

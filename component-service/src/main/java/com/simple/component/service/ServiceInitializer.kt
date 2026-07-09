@@ -10,7 +10,10 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.startup.Initializer
 import com.simple.auto.register.AutoRegisterManager
 import kotlinx.coroutines.flow.map
@@ -18,7 +21,9 @@ import kotlinx.coroutines.flow.map
 class ServiceInitializer : Initializer<Unit> {
 
     override fun create(context: Context) {
+
         val application = context.applicationContext as? Application ?: return
+
         setupApplication(application)
     }
 
@@ -31,107 +36,119 @@ class ServiceInitializer : Initializer<Unit> {
         }
 
         application.registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                if (activity is FragmentActivity) setupActivity(activity)
+                if (activity is FragmentActivity) {
+                    activity.updateState(LifecycleState.Created)
+                    setupActivity(activity)
+                }
             }
 
             override fun onActivityStarted(activity: Activity) {
-                if (activity is FragmentActivity) setupActivityLifecycle(activity, ActivityStartedService::class.java)
+                if (activity is FragmentActivity) {
+                    activity.updateState(LifecycleState.Started)
+                    setupComponentCallbacksLifecycle(activity, ActivityStartedService::class.java)
+                }
             }
 
             override fun onActivityResumed(activity: Activity) {
-                if (activity is FragmentActivity) setupActivityLifecycle(activity, ActivityResumedService::class.java)
+                if (activity is FragmentActivity) {
+                    activity.updateState(LifecycleState.Resumed)
+                    setupComponentCallbacksLifecycle(activity, ActivityResumedService::class.java)
+                }
             }
 
             override fun onActivityPaused(activity: Activity) {
-                if (activity is FragmentActivity) setupActivityLifecycle(activity, ActivityPausedService::class.java)
+                if (activity is FragmentActivity) {
+                    activity.updateState(LifecycleState.Paused)
+                }
             }
 
             override fun onActivityStopped(activity: Activity) {
-                if (activity is FragmentActivity) setupActivityLifecycle(activity, ActivityStoppedService::class.java)
+                if (activity is FragmentActivity) {
+                    activity.updateState(LifecycleState.Stopped)
+                }
             }
 
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+            }
 
             override fun onActivityDestroyed(activity: Activity) {
-                if (activity is FragmentActivity) setupActivityLifecycle(activity, ActivityDestroyedService::class.java)
+                if (activity is FragmentActivity) {
+                    activity.updateState(LifecycleState.Destroyed)
+                }
             }
         })
     }
 
     private fun setupActivity(fragmentActivity: FragmentActivity) {
 
-        AutoRegisterManager.subscribe(ActivityService::class.java).map { it.toList() }.launchCollect(fragmentActivity) { list ->
-            list.setup(fragmentActivity)
-        }
-
-        AutoRegisterManager.subscribe(fragmentActivity.javaClass.name, ActivityService::class.java).map { it.toList() }.launchCollect(fragmentActivity) { list ->
-            list.setup(fragmentActivity)
-        }
+        setupComponentCallbacksLifecycle(fragmentActivity, ActivityCreatedService::class.java)
 
         fragmentActivity.supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
 
             override fun onFragmentAttached(fm: FragmentManager, f: Fragment, context: Context) {
-                setupFragment(f, FragmentAttachedService::class.java)
+                f.updateState(LifecycleState.Attached)
+                setupComponentCallbacksLifecycle(f, FragmentAttachedService::class.java)
             }
 
             override fun onFragmentCreated(fm: FragmentManager, f: Fragment, savedInstanceState: Bundle?) {
-                setupFragment(f, FragmentCreatedService::class.java)
+                f.updateState(LifecycleState.Created)
+                setupComponentCallbacksLifecycle(f, FragmentCreatedService::class.java)
             }
 
             override fun onFragmentViewCreated(fm: FragmentManager, f: Fragment, v: View, savedInstanceState: Bundle?) {
-                setupFragment(f, FragmentViewCreatedService::class.java)
+                f.updateState(LifecycleState.ViewCreated)
+                setupComponentCallbacksLifecycle(f, FragmentViewCreatedService::class.java)
             }
 
             override fun onFragmentStarted(fm: FragmentManager, f: Fragment) {
-                setupFragment(f, FragmentStartedService::class.java)
+                f.updateState(LifecycleState.Started)
+                setupComponentCallbacksLifecycle(f, FragmentStartedService::class.java)
             }
 
             override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
-                setupFragment(f, FragmentResumedService::class.java)
+                f.updateState(LifecycleState.Resumed)
+                setupComponentCallbacksLifecycle(f, FragmentResumedService::class.java)
             }
 
             override fun onFragmentPaused(fm: FragmentManager, f: Fragment) {
-                setupFragment(f, FragmentPausedService::class.java)
+                f.updateState(LifecycleState.Paused)
             }
 
             override fun onFragmentStopped(fm: FragmentManager, f: Fragment) {
-                setupFragment(f, FragmentStoppedService::class.java)
+                f.updateState(LifecycleState.Stopped)
             }
 
             override fun onFragmentViewDestroyed(fm: FragmentManager, f: Fragment) {
-                setupFragment(f, FragmentViewDestroyedService::class.java)
+                f.updateState(LifecycleState.ViewDestroyed)
             }
 
             override fun onFragmentDestroyed(fm: FragmentManager, f: Fragment) {
-                setupFragment(f, FragmentDestroyedService::class.java)
+                f.updateState(LifecycleState.Destroyed)
             }
 
             override fun onFragmentDetached(fm: FragmentManager, f: Fragment) {
-                setupFragment(f, FragmentDetachedService::class.java)
             }
         }, true)
     }
 
-    private fun <T : ComponentService<FragmentActivity>> setupActivityLifecycle(fragmentActivity: FragmentActivity, api: Class<T>) {
-
-        AutoRegisterManager.subscribe(api).map { it.toList() }.launchCollect(fragmentActivity) { list ->
-            list.setup(fragmentActivity)
-        }
-
-        AutoRegisterManager.subscribe(fragmentActivity.javaClass.name, api).map { it.toList() }.launchCollect(fragmentActivity) { list ->
-            list.setup(fragmentActivity)
+    private fun Any.updateState(state: LifecycleState) {
+        (this as? ViewModelStoreOwner)?.let {
+            ViewModelProvider(it)[LifecycleStateViewModel::class.java].updateState(state)
         }
     }
 
-    private fun <T : ComponentService<Fragment>> setupFragment(fragment: Fragment, api: Class<T>) {
+    private fun <Y : ComponentCallbacks, T : ComponentService<Y>> setupComponentCallbacksLifecycle(componentCallbacks: Y, api: Class<T>) {
 
-        AutoRegisterManager.subscribe(api).map { it.toList() }.launchCollect(fragment) { list ->
-            list.setup(fragment)
+        AutoRegisterManager.subscribe(api).map { it.toList() }.launchCollect(componentCallbacks as LifecycleOwner) { list ->
+
+            list.setup(componentCallbacks)
         }
 
-        AutoRegisterManager.subscribe(fragment.javaClass.name, api).map { it.toList() }.launchCollect(fragment) { list ->
-            list.setup(fragment)
+        AutoRegisterManager.subscribe(componentCallbacks.javaClass.name, api).map { it.toList() }.launchCollect(componentCallbacks as LifecycleOwner) { list ->
+
+            list.setup(componentCallbacks)
         }
     }
 

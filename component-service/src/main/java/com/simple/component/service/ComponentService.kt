@@ -14,12 +14,14 @@ interface ComponentService<T : ComponentCallbacks> {
     fun setup(t: T)
 }
 
+
 interface ApplicationService : ComponentService<Application> {
     override fun setup(application: Application)
 }
 
+
 // Activity Services
-interface ActivityService : ComponentService<FragmentActivity> {
+interface ActivityCreatedService : ComponentService<FragmentActivity> {
     override fun setup(fragmentActivity: FragmentActivity)
 }
 
@@ -31,17 +33,6 @@ interface ActivityResumedService : ComponentService<FragmentActivity> {
     override fun setup(fragmentActivity: FragmentActivity)
 }
 
-interface ActivityPausedService : ComponentService<FragmentActivity> {
-    override fun setup(fragmentActivity: FragmentActivity)
-}
-
-interface ActivityStoppedService : ComponentService<FragmentActivity> {
-    override fun setup(fragmentActivity: FragmentActivity)
-}
-
-interface ActivityDestroyedService : ComponentService<FragmentActivity> {
-    override fun setup(fragmentActivity: FragmentActivity)
-}
 
 // Fragment Services
 interface FragmentAttachedService : ComponentService<Fragment> {
@@ -61,25 +52,5 @@ interface FragmentStartedService : ComponentService<Fragment> {
 }
 
 interface FragmentResumedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentPausedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentStoppedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentViewDestroyedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentDestroyedService : ComponentService<Fragment> {
-    override fun setup(fragment: Fragment)
-}
-
-interface FragmentDetachedService : ComponentService<Fragment> {
     override fun setup(fragment: Fragment)
 }
