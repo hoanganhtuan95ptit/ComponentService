@@ -5,3 +5,8 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.ksp) apply false
 }
+
+subprojects {
+    group = "com.github.hoanganhtuan95ptit.ComponentService"
+    version = "1.0.0"
+}
