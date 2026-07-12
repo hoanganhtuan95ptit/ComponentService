@@ -29,8 +29,8 @@ Add the dependency to your `build.gradle` (module):
 
 ```gradle
 dependencies {
-    implementation("com.github.hoanganhtuan95ptit.ComponentService:component-service:1.0.0")
-    ksp("com.github.hoanganhtuan95ptit.AutoRegister:auto-register-processor:1.1.1")
+    implementation("com.github.hoanganhtuan95ptit.ComponentService:component-service:1.2.1.10")
+    ksp("com.github.hoanganhtuan95ptit.AutoRegister:auto-register-processor:1.2.1.4")
 }
 ```
 
