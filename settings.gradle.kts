@@ -16,10 +16,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
 rootProject.name = "ComponentService"
-include ':app'
-include ':component-service'
+include(":app")
+include(":component-service")
